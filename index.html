@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام تشغيل وجودة محطة المياه | Eng. Mohammed Alhadidi</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800;900&family=Tajawal:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+:root{
+--bg:#111317;
+--bg-2:#0b0d10;
+--surface:#1b2229;
+--surface-2:#202832;
+--border:#2a3642;
+--text:#eef4f7;
+--text-dim:#9aa8b5;
+--text-faint:#6b7785;
+--blue:#0072bc;
+--blue-2:#00a0df;
+--accent:#00a0df;
+--shadow:0 20px 50px -20px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+background:
+radial-gradient(1200px 700px at 15% -10%, rgba(0,160,223,.12), transparent 60%),
+radial-gradient(900px 600px at 110% 10%, rgba(0,114,188,.10), transparent 55%),
+linear-gradient(180deg,#111317,#050608);
+color:var(--text);
+font-family:'Tajawal','Space Grotesk',sans-serif;
+min-height:100vh;
+display:flex;
+flex-direction:column;
+overflow-x:hidden;
+}
+.grid-overlay{
+position:fixed;inset:0;pointer-events:none;z-index:0;
+background-image:
+linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+background-size:42px 42px;
+mask-image: radial-gradient(1100px 700px at 50% 0%, #000 10%, transparent 75%);
+}
+.topbar{
+position:sticky;top:0;z-index:30;
+display:flex;align-items:center;justify-content:space-between;
+padding:14px 26px;
+background:rgba(10,14,18,.85);
+backdrop-filter:blur(14px);
+border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;}
+.brand-text{display:flex;flex-direction:column;line-height:1.25;}
+.brand-name-ar{
+font-family:'Cairo',sans-serif;font-weight:900;font-size:18px;letter-spacing:.2px;
+background:linear-gradient(90deg,var(--blue),var(--blue-2));
+-webkit-background-clip:text;background-clip:text;color:transparent;
+animation:textGlow 3.6s ease-in-out infinite;
+display:flex;align-items:center;gap:6px;
+}
+.brand-name-en{
+font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:11px;
+color:var(--text-dim);letter-spacing:.4px;
+}
+.brand-icon{width:22px;height:22px;}
+.brand-icon svg{display:block;}
+@keyframes textGlow{
+0%,100%{filter:drop-shadow(0 0 4px rgba(0,160,223,.25));}
+50%{filter:drop-shadow(0 0 14px rgba(0,160,223,.7));}
+}
+.topbar-stats{display:flex;gap:22px;color:var(--text-dim);font-size:12px;align-items:center;}
+.topbar-stats b{color:var(--text);font-family:'Space Grotesk',sans-serif;}
+.admin-pill{
+padding:4px 10px;border-radius:999px;font-size:11px;
+border:1px solid rgba(0,160,223,.4);background:rgba(0,160,223,.14);color:var(--blue-2);
+display:none;align-items:center;gap:4px;
+}
+.admin-pill.on{display:inline-flex;}
+@media(max-width:720px){.topbar-stats{display:none;}}
+
+main{flex:1;position:relative;z-index:1;width:100%;max-width:1080px;margin:0 auto;padding:30px 22px 80px;}
+.section-title{
+display:flex;align-items:baseline;gap:10px;margin:10px 0 16px;
+}
+.section-title h2{font-family:'Cairo',sans-serif;font-weight:800;font-size:19px;}
+.section-title span{font-size:12px;color:var(--text-faint);font-family:'Space Grotesk',sans-serif;}
+
+.tabs{
+display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px;
+}
+.tab-btn{
+padding:10px 16px;border-radius:999px;border:1px solid var(--border);
+background:var(--surface);color:var(--text-dim);cursor:pointer;
+font-family:'Tajawal',sans-serif;font-size:13px;
+transition:all .2s ease;
+}
+.tab-btn.active{
+background:linear-gradient(90deg,var(--blue),var(--blue-2));
+color:#05070a;border:none;
+}
+
+.card{
+background:var(--surface);border:1px solid var(--border);border-radius:16px;
+padding:18px;margin-bottom:20px;box-shadow:var(--shadow);
+}
+.card-header{
+display:flex;align-items:center;gap:10px;margin-bottom:14px;
+}
+.card-header-icon{
+width:34px;height:34px;border-radius:10px;
+display:flex;align-items:center;justify-content:center;
+background:rgba(0,160,223,.18);
+border:1px solid rgba(0,160,223,.4);
+font-size:18px;
+}
+.card-header h3{
+font-family:'Cairo',sans-serif;font-size:16px;font-weight:700;
+}
+.card-header span{
+font-size:11.5px;color:var(--text-faint);font-family:'Space Grotesk',sans-serif;
+}
+
+.form-grid{
+display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+gap:14px;margin-top:10px;
+}
+.form-field{
+display:flex;flex-direction:column;gap:4px;
+}
+.form-field label{
+font-size:12.5px;color:var(--text-dim);font-family:'Tajawal',sans-serif;
+}
+.form-field input{
+background:var(--bg-2);border:1px solid var(--border);border-radius:10px;
+padding:8px 10px;color:var(--text);font-size:13px;font-family:'Tajawal',sans-serif;
+}
+.form-field input:focus{
+outline:none;border-color:var(--blue-2);
+}
+
+.form-actions{
+margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;
+}
+.btn{
+padding:10px 18px;border-radius:11px;border:1px solid var(--border);
+background:var(--surface-2);color:var(--text-dim);cursor:pointer;
+font-family:'Tajawal',sans-serif;font-size:13px;transition:all .2s ease;
+}
+.btn.primary{
+background:linear-gradient(90deg,var(--blue),var(--blue-2));
+color:#05070a;border:none;font-weight:700;
+}
+.btn.danger{
+background:#b3261e;color:#fff;border:none;
+}
+.btn.small{padding:5px 10px;font-size:11.5px;border-radius:8px;}
+.btn:hover{filter:brightness(1.05);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+
+.table-wrap{
+margin-top:10px;overflow-x:auto;
+}
+table{
+width:100%;border-collapse:collapse;font-size:12.5px;
+}
+th,td{
+border:1px solid var(--border);padding:6px 8px;text-align:center;
+}
+th{
+background:var(--surface-2);color:var(--text-dim);font-family:'Tajawal',sans-serif;
+}
+td{
+background:var(--bg-2);color:var(--text);font-family:'Tajawal',sans-serif;
+}
+.empty-row td{color:var(--text-faint);padding:16px;}
+.admin-only{display:none;}
+.admin-only.on{display:inline-flex;}
+
+.home-hero{text-align:center;padding:10px 10px 24px;}
+.home-logo-text{margin:0 auto 18px;}
+.hl-ar{
+font-family:'Cairo',sans-serif;font-weight:900;font-size:clamp(24px,4vw,34px);
+background:linear-gradient(90deg,var(--blue),var(--blue-2));
+-webkit-background-clip:text;background-clip:text;color:transparent;
+animation:textGlow 3.6s ease-in-out infinite;
+}
+.hl-en{
+font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:13px;
+color:var(--text-dim);letter-spacing:1px;margin-top:4px;
+}
+.hero-tag{
+color:var(--text-dim);font-size:14px;max-width:640px;margin:0 auto 10px;line-height:1.8;
+}
+.hero-tag .en{
+display:block;font-size:12px;color:var(--text-faint);margin-top:4px;
+}
+
+.date-modal{
+position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+background:rgba(0,0,0,.6);z-index:50;
+}
+.date-modal-inner{
+background:var(--surface);border-radius:14px;border:1px solid var(--border);
+padding:16px 18px;min-width:260px;box-shadow:var(--shadow);
+}
+.date-modal-inner h4{
+margin-bottom:10px;font-family:'Cairo',sans-serif;font-size:15px;
+}
+.date-modal-inner input{
+width:100%;margin-bottom:12px;
+}
+.date-modal-actions{
+display:flex;justify-content:flex-end;gap:8px;
+}
+
+@media(max-width:560px){
+.brand-text{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="grid-overlay"></div>
+
+<header class="topbar">
+<div class="brand" id="brandHome">
+<div class="brand-text">
+<div class="brand-name-ar">
+م. محمد الحديدي
+<span class="brand-icon">
+<svg viewBox="0 0 24 24">
+<defs>
+<linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#0072bc"/>
+<stop offset="100%" stop-color="#00a0df"/>
+</linearGradient>
+</defs>
+<circle cx="12" cy="12" r="9" fill="none" stroke="url(#logoGrad)" stroke-width="1.8"/>
+<path d="M8 13c1.5-2 3-3 4.5-3s3 1 4.5 3" fill="none" stroke="url(#logoGrad)" stroke-width="1.4" stroke-linecap="round"/>
+</svg>
+</span>
+</div>
+<div class="brand-name-en">
+ENG. MOHAMMED ALHADIDI
+</div>
+</div>
+</div>
+
+<div class="topbar-stats">
+<div><b id="statOps">0</b> سجلات تشغيل</div>
+<div><b id="statQual">0</b> سجلات جودة</div>
+<div class="admin-pill" id="adminPill">🔑 وضع الأدمن</div>
+</div>
+</header>
+
+<main>
+
+<div class="home-hero">
+<div class="home-logo-text">
+<div class="hl-ar">نظام تشغيل وجودة محطة المياه</div>
+<div class="hl-en">Water Plant Operation & Quality Logger</div>
+</div>
+
+<p class="hero-tag">
+واجهة لتسجيل بيانات التشغيل اليومية وبيانات جودة المياه، مع حفظها في جداول قابلة للعرض والتنزيل بصيغة يمكن فتحها في إكسل.
+<span class="en">
+Log daily operational data and water quality parameters, with tables that can be viewed and downloaded in Excel-friendly format.
+</span>
+</p>
+</div>
+
+<div class="section-title">
+<h2>الأقسام</h2><span>Sections</span>
+</div>
+
+<div class="tabs">
+<button class="tab-btn active" data-tab="ops-input">إدخال التشغيل</button>
+<button class="tab-btn" data-tab="qual-input">إدخال الجودة</button>
+<button class="tab-btn" id="reports-btn">التقارير</button>
+</div>
+
+<div id="reports-menu" style="display:none; margin-bottom:20px;">
+<button class="btn primary" data-report="ops">تقرير التشغيل</button>
+<button class="btn primary" data-report="qual">تقرير جودة المياه</button>
+</div>
+
+<section id="tab-ops-input">
+<div class="card">
+<div class="card-header">
+<div class="card-header-icon">⚙️</div>
+<div>
+<h3>إدخال بيانات التشغيل اليومية</h3>
+<span>Daily Operation Data Entry</span>
+</div>
+</div>
+
+<div class="form-grid">
+<div class="form-field">
+<label>التاريخ</label>
+<input type="text" id="ops-date" readonly placeholder="اختر التاريخ">
+</div>
+<div class="form-field">
+<label>الإنتاج الخام (م³)</label>
+<input type="number" id="ops-raw">
+</div>
+<div class="form-field">
+<label>عدد الفلاتر المغسلة</label>
+<input type="number" id="ops-filters">
+</div>
+<div class="form-field">
+<label>عدد مرات تشغيل سلج المروق</label>
+<input type="number" id="ops-clarifier-sludge">
+</div>
+<div class="form-field">
+<label>عدد مرات تشغيل خزان السلج والتصريف</label>
+<input type="number" id="ops-sludge-tank">
+</div>
+<div class="form-field">
+<label>استهلاك الكهرباء (kWh)</label>
+<input type="number" id="ops-kwh">
+</div>
+<div class="form-field">
+<label>عدد ساعات تشغيل المحطة</label>
+<input type="number" id="ops-plant-hours">
+</div>
+<div class="form-field">
+<label>التصدير للكامل (م³)</label>
+<input type="number" id="ops-export-kamel">
+</div>
+<div class="form-field">
+<label>التصدير لخليص (م³)</label>
+<input type="number" id="ops-export-khulais">
+</div>
+<div class="form-field">
+<label>عدد ساعات تشغيل مضخات الكامل</label>
+<input type="number" id="ops-kamel-pumps-hours">
+</div>
+<div class="form-field">
+<label>منسوب خزان 1</label>
+<input type="number" id="ops-res1-level">
+</div>
+<div class="form-field">
+<label>منسوب الخزان الرئيسي</label>
+<input type="number" id="ops-res-main-level">
+</div>
+</div>
+
+<div class="form-actions">
+<button class="btn primary" id="ops-save">حفظ البيانات</button>
+<button class="btn" id="ops-clear">مسح الحقول</button>
+</div>
+
+</div>
+</section>
+
+<section id="tab-ops-report" style="display:none;">
+<div class="card">
+<div class="card-header">
+<div class="card-header-icon">📊</div>
+<div>
+<h3>تقرير التشغيل اليومي</h3>
+<span>Daily Operation Report</span>
+</div>
+</div>
+
+<div class="table-wrap">
+<table id="ops-table">
+<thead>
+<tr>
+<th>التاريخ</th>
+<th>الإنتاج الخام</th>
+<th>الفلاتر المغسلة</th>
+<th>سلج المروق</th>
+<th>خزان السلج</th>
+<th>الكهرباء (kWh)</th>
+<th>ساعات تشغيل المحطة</th>
+<th>تصدير الكامل</th>
+<th>تصدير خليص</th>
+<th>ساعات مضخات الكامل</th>
+<th>منسوب خزان 1</th>
+<th>منسوب الخزان الرئيسي</th>
+<th>الإنتاج الفعلي (م³)</th>
+<th>حذف</th>
+</tr>
+</thead>
+<tbody id="ops-tbody">
+<tr class="empty-row"><td colspan="14">جارِ التحميل...</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="form-actions">
+<button class="btn primary admin-only" id="ops-download">تنزيل ملف إكسل (.xlsx)</button>
+<button class="btn danger admin-only" id="ops-delete-all">حذف الجدول بالكامل</button>
+<button class="btn" id="ops-refresh">تحديث</button>
+</div>
+
+</div>
+</section>
+
+<section id="tab-qual-input" style="display:none;">
+<div class="card">
+<div class="card-header">
+<div class="card-header-icon">💧</div>
+<div>
+<h3>إدخال بيانات جودة المياه</h3>
+<span>Water Quality Data Entry</span>
+</div>
+</div>
+
+<div class="form-grid">
+<div class="form-field">
+<label>التاريخ</label>
+<input type="text" id="qual-date" readonly placeholder="اختر التاريخ">
+</div>
+<div class="form-field">
+<label>الكلور المتبقي (mg/L)</label>
+<input type="number" id="qual-chlorine" step="0.01">
+</div>
+<div class="form-field">
+<label>العكارة (NTU)</label>
+<input type="number" id="qual-turbidity" step="0.01">
+</div>
+<div class="form-field">
+<label>pH</label>
+<input type="number" id="qual-ph" step="0.01">
+</div>
+<div class="form-field">
+<label>TDS (mg/L)</label>
+<input type="number" id="qual-tds" step="0.01">
+</div>
+<div class="form-field">
+<label>التوصيلية (µS/cm)</label>
+<input type="number" id="qual-cond" step="0.01">
+</div>
+</div>
+
+<div class="form-actions">
+<button class="btn primary" id="qual-save">حفظ البيانات</button>
+<button class="btn" id="qual-clear">مسح الحقول</button>
+</div>
+
+</div>
+</section>
+
+<section id="tab-qual-report" style="display:none;">
+<div class="card">
+<div class="card-header">
+<div class="card-header-icon">📈</div>
+<div>
+<h3>تقرير جودة المياه</h3>
+<span>Water Quality Report</span>
+</div>
+</div>
+
+<div class="table-wrap">
+<table id="qual-table">
+<thead>
+<tr>
+<th>التاريخ</th>
+<th>الكلور (mg/L)</th>
+<th>العكارة (NTU)</th>
+<th>pH</th>
+<th>TDS (mg/L)</th>
+<th>التوصيلية (µS/cm)</th>
+<th>حذف</th>
+</tr>
+</thead>
+<tbody id="qual-tbody">
+<tr class="empty-row"><td colspan="7">جارِ التحميل...</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="form-actions">
+<button class="btn primary admin-only" id="qual-download">تنزيل ملف إكسل (.xlsx)</button>
+<button class="btn danger admin-only" id="qual-delete-all">حذف الجدول بالكامل</button>
+<button class="btn" id="qual-refresh">تحديث</button>
+</div>
+
+</div>
+</section>
+
+</main>
+
+<div class="date-modal" id="date-modal">
+<div class="date-modal-inner">
+<h4>اختيار التاريخ</h4>
+<input type="date" id="date-modal-input">
+<div class="date-modal-actions">
+<button class="btn" id="date-cancel">إلغاء</button>
+<button class="btn primary" id="date-ok">تأكيد</button>
+</div>
+</div>
+</div>
+
+<script>
+/* ============================================================
+   إعدادات عامة — رابط تطبيق Google Apps Script المنشور
+   ============================================================ */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4WVsN2nUMzrjtl0KYkyzH1I1SQNmqKHEqtD2gljcbDnhWLTSDRJ0gOH30_Gxr9tcbaw/exec";
+// أسماء الشيتات كما هي في ملف Google Sheets (بدون s في الآخر)
+const OPS_SHEET_NAME = "Operation";
+const QUAL_SHEET_NAME = "Quality";
+const ADMIN_USER = "Mohammed";
+const ADMIN_PASS = "12345";
+let isAdmin = false;
+
+/*---------------------- التبويبات ----------------------*/
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabs = {
+  'ops-input': document.getElementById('tab-ops-input'),
+  'ops-report': document.getElementById('tab-ops-report'),
+  'qual-input': document.getElementById('tab-qual-input'),
+  'qual-report': document.getElementById('tab-qual-report')
+};
+
+function showTab(target) {
+  tabButtons.forEach(b => b.classList.remove('active'));
+  const matchingBtn = [...tabButtons].find(b => b.dataset.tab === target);
+  if (matchingBtn) matchingBtn.classList.add('active');
+
+  Object.keys(tabs).forEach(k => {
+    tabs[k].style.display = (k === target) ? 'block' : 'none';
+  });
+  document.getElementById('reports-menu').style.display = 'none';
+}
+
+tabButtons.forEach(btn => {
+  const target = btn.dataset.tab;
+  if (target) {
+    btn.addEventListener('click', () => showTab(target));
+  }
+});
+
+/*---------------------- زر التقارير ----------------------
+  التقارير أصبحت متاحة للجميع للاستعراض (بدون حاجة لتسجيل دخول
+  الأدمن). صلاحيات الحذف والتنزيل فقط محصورة بالأدمن، وتُتحكم
+  عبر toggleAdminUI().
+------------------------------------------------------------*/
+document.getElementById('reports-btn').addEventListener('click', () => {
+  tabButtons.forEach(b => b.classList.remove('active'));
+  document.getElementById('reports-menu').style.display = 'block';
+  Object.keys(tabs).forEach(k => tabs[k].style.display = 'none');
+});
+
+document.querySelectorAll('[data-report]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const which = btn.dataset.report; // 'ops' | 'qual'
+    showTab(which === 'ops' ? 'ops-report' : 'qual-report');
+    loadAllData();
+  });
+});
+
+/*---------------------- تسجيل دخول الأدمن ----------------------*/
+function toggleAdminUI() {
+  document.getElementById('adminPill').classList.toggle('on', isAdmin);
+  document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('on', isAdmin));
+  // إعادة رسم الجداول حتى تظهر/تختفي أزرار الحذف الفردية
+  renderOpsTable(lastOpsRows);
+  renderQualTable(lastQualRows);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === "F2") {
+    const u = prompt("اسم الأدمن:");
+    const p = prompt("الرقم السري:");
+    if (u === ADMIN_USER && p === ADMIN_PASS) {
+      isAdmin = true;
+      toggleAdminUI();
+      alert("تم تسجيل الدخول كأدمن.");
+    } else {
+      alert("خطأ في بيانات الأدمن.");
+    }
+  }
+});
+
+/*---------------------- التاريخ ----------------------*/
+let currentDateTarget = null;
+const dateModal = document.getElementById('date-modal');
+const dateModalInput = document.getElementById('date-modal-input');
+
+function attachDatePicker(input) {
+  input.addEventListener('click', () => {
+    currentDateTarget = input;
+    dateModalInput.value = input.value || '';
+    dateModal.style.display = 'flex';
+  });
+}
+
+document.getElementById('date-cancel').onclick = () => {
+  dateModal.style.display = 'none';
+  currentDateTarget = null;
+};
+
+document.getElementById('date-ok').onclick = () => {
+  if (currentDateTarget && dateModalInput.value) {
+    currentDateTarget.value = dateModalInput.value;
+  }
+  dateModal.style.display = 'none';
+  currentDateTarget = null;
+};
+
+attachDatePicker(document.getElementById('ops-date'));
+attachDatePicker(document.getElementById('qual-date'));
+
+/*---------------------- أداة مساعدة: نداء الـ API ----------------------
+  ملاحظة مهمة: لا نستخدم Content-Type: application/json في الطلبات
+  لأن هذا يجبر المتصفح على إرسال preflight (OPTIONS) قبل الطلب،
+  و Google Apps Script Web App لا يستقبل ولا يرد على OPTIONS، فيفشل
+  الطلب دائمًا بصمت. لذلك نرسل كنص عادي (text/plain) ونحوّله إلى
+  JSON داخل Apps Script نفسه (e.postData.contents).
+------------------------------------------------------------*/
+async function callApi(payload) {
+  const res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+
+/*---------------------- إدخال التشغيل ----------------------*/
+const opsInputs = {
+  date: document.getElementById('ops-date'),
+  raw: document.getElementById('ops-raw'),
+  filters: document.getElementById('ops-filters'),
+  clarifierSludge: document.getElementById('ops-clarifier-sludge'),
+  sludgeTank: document.getElementById('ops-sludge-tank'),
+  kwh: document.getElementById('ops-kwh'),
+  plantHours: document.getElementById('ops-plant-hours'),
+  exportKamel: document.getElementById('ops-export-kamel'),
+  exportKhulais: document.getElementById('ops-export-khulais'),
+  kamelPumpsHours: document.getElementById('ops-kamel-pumps-hours'),
+  res1Level: document.getElementById('ops-res1-level'),
+  resMainLevel: document.getElementById('ops-res-main-level')
+};
+
+document.getElementById('ops-save').addEventListener('click', async () => {
+  if (!opsInputs.date.value) return alert("الرجاء إدخال التاريخ.");
+
+  const btn = document.getElementById('ops-save');
+  btn.disabled = true;
+
+  const actual =
+    (Number(opsInputs.raw.value) || 0)
+    - ((Number(opsInputs.clarifierSludge.value) || 0) * 50)
+    - ((Number(opsInputs.sludgeTank.value) || 0) * 500)
+    - ((Number(opsInputs.filters.value) || 0) * 150);
+
+  const payload = {
+    type: "operation",
+    date: opsInputs.date.value,
+    raw: opsInputs.raw.value || "",
+    filters: opsInputs.filters.value || "",
+    clarifierSludge: opsInputs.clarifierSludge.value || "",
+    sludgeTank: opsInputs.sludgeTank.value || "",
+    kwh: opsInputs.kwh.value || "",
+    plantHours: opsInputs.plantHours.value || "",
+    exportKamel: opsInputs.exportKamel.value || "",
+    exportKhulais: opsInputs.exportKhulais.value || "",
+    kamelPumpsHours: opsInputs.kamelPumpsHours.value || "",
+    res1Level: opsInputs.res1Level.value || "",
+    resMainLevel: opsInputs.resMainLevel.value || "",
+    actualProduction: actual.toFixed(2)
+  };
+
+  try {
+    await callApi(payload);
+    Object.values(opsInputs).forEach(i => i.value = "");
+    alert("تم حفظ بيانات التشغيل.");
+    loadAllData();
+  } catch (err) {
+    alert("تعذّر حفظ البيانات. تحقق من اتصال الإنترنت أو من رابط السيرفر.");
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('ops-clear').addEventListener('click', () => {
+  Object.values(opsInputs).forEach(i => i.value = "");
+});
+
+/*---------------------- إدخال الجودة ----------------------*/
+const qualInputs = {
+  date: document.getElementById('qual-date'),
+  chlorine: document.getElementById('qual-chlorine'),
+  turbidity: document.getElementById('qual-turbidity'),
+  ph: document.getElementById('qual-ph'),
+  tds: document.getElementById('qual-tds'),
+  cond: document.getElementById('qual-cond')
+};
+
+document.getElementById('qual-save').addEventListener('click', async () => {
+  if (!qualInputs.date.value) return alert("الرجاء إدخال التاريخ.");
+
+  const btn = document.getElementById('qual-save');
+  btn.disabled = true;
+
+  const payload = {
+    type: "quality",
+    date: qualInputs.date.value,
+    chlorine: qualInputs.chlorine.value || "",
+    turbidity: qualInputs.turbidity.value || "",
+    ph: qualInputs.ph.value || "",
+    tds: qualInputs.tds.value || "",
+    cond: qualInputs.cond.value || ""
+  };
+
+  try {
+    await callApi(payload);
+    Object.values(qualInputs).forEach(i => i.value = "");
+    alert("تم حفظ بيانات الجودة.");
+    loadAllData();
+  } catch (err) {
+    alert("تعذّر حفظ البيانات. تحقق من اتصال الإنترنت أو من رابط السيرفر.");
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('qual-clear').addEventListener('click', () => {
+  Object.values(qualInputs).forEach(i => i.value = "");
+});
+
+/*---------------------- جلب البيانات وعرضها ----------------------
+  doGet في سكربتك يرجّع مصفوفة صفوف خام (values) شاملة صف الهيدر
+  بالأعلى، مثلاً:
+    [ ["date","raw","filters",...],   <- الهيدر (index 0)
+      ["2026-07-01","500","2",...],   <- أول سجل (index 1 → سطر 2 بالشيت)
+      ["2026-07-02","480","1",...] ]  <- ثاني سجل (index 2 → سطر 3 بالشيت)
+  فرقم السطر الفعلي بالشيت لأي سجل = رقمه داخل المصفوفة + 1.
+------------------------------------------------------------------*/
+let lastOpsRows = [];   // بدون الهيدر
+let lastQualRows = [];  // بدون الهيدر
+
+function escapeHtml(v) {
+  return String(v ?? "").replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+// rows: كل صف مصحوب برقم سطره الفعلي بالشيت { sheetRow, values }
+function renderOpsTable(rows) {
+  const tbody = document.getElementById('ops-tbody');
+  if (!rows || rows.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="14">لا توجد بيانات بعد.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const delCell = isAdmin
+      ? `<button class="btn danger small" onclick="deleteRow('${OPS_SHEET_NAME}',${r.sheetRow})">حذف</button>`
+      : '';
+    return `<tr>${r.values.map(v => `<td>${escapeHtml(v)}</td>`).join('')}<td>${delCell}</td></tr>`;
+  }).join('');
+}
+
+function renderQualTable(rows) {
+  const tbody = document.getElementById('qual-tbody');
+  if (!rows || rows.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">لا توجد بيانات بعد.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const delCell = isAdmin
+      ? `<button class="btn danger small" onclick="deleteRow('${QUAL_SHEET_NAME}',${r.sheetRow})">حذف</button>`
+      : '';
+    return `<tr>${r.values.map(v => `<td>${escapeHtml(v)}</td>`).join('')}<td>${delCell}</td></tr>`;
+  }).join('');
+}
+
+function toRowsWithIndex(rawValues) {
+  // rawValues[0] هو الهيدر، نحوّل الباقي لكائنات فيها رقم السطر الفعلي بالشيت
+  if (!Array.isArray(rawValues) || rawValues.length === 0) return [];
+  return rawValues.slice(1)
+    .map((values, i) => ({ sheetRow: i + 2, values })) // i=0 → أول سجل → سطر 2 بالشيت
+    .filter(r => r.values.some(v => v !== "")); // تجاهل الصفوف الفارغة تمامًا
+}
+
+// تحويل التاريخ (بأي صيغة معقولة) إلى رقم زمني قابل للمقارنة، للترتيب
+// من الأقدم للأحدث بغض النظر عن ترتيب الإدخال الفعلي.
+function parseDateSafe(str) {
+  if (!str) return 0;
+  // الصيغة القياسية من حقل <input type="date"> هي yyyy-mm-dd وتُفهم مباشرة
+  const iso = new Date(str);
+  if (!isNaN(iso.getTime())) return iso.getTime();
+
+  // احتياط لصيغ مثل d/m/yyyy أو d-m-yyyy
+  const parts = String(str).split(/[\/\-]/).map(Number);
+  if (parts.length === 3 && parts.every(n => !isNaN(n))) {
+    const [day, month, year] = parts;
+    const fallback = new Date(year, month - 1, day);
+    if (!isNaN(fallback.getTime())) return fallback.getTime();
+  }
+  return 0;
+}
+
+function sortByDateAsc(rows) {
+  // عمود التاريخ هو أول عمود في كل صف (values[0])
+  return [...rows].sort((a, b) => parseDateSafe(a.values[0]) - parseDateSafe(b.values[0]));
+}
+
+async function loadAllData() {
+  try {
+    const [opsRes, qualRes] = await Promise.all([
+      fetch(SCRIPT_URL + "?type=operation&_ts=" + Date.now(), { method: "GET", cache: "no-store" }),
+      fetch(SCRIPT_URL + "?type=quality&_ts=" + Date.now(), { method: "GET", cache: "no-store" })
+    ]);
+    const opsRaw = await opsRes.json();
+    const qualRaw = await qualRes.json();
+
+    lastOpsRows = sortByDateAsc(toRowsWithIndex(opsRaw));
+    lastQualRows = sortByDateAsc(toRowsWithIndex(qualRaw));
+
+    document.getElementById('statOps').textContent = lastOpsRows.length;
+    document.getElementById('statQual').textContent = lastQualRows.length;
+    renderOpsTable(lastOpsRows);
+    renderQualTable(lastQualRows);
+  } catch (err) {
+    console.error(err);
+    document.getElementById('ops-tbody').innerHTML =
+      '<tr class="empty-row"><td colspan="14">تعذّر تحميل البيانات.</td></tr>';
+    document.getElementById('qual-tbody').innerHTML =
+      '<tr class="empty-row"><td colspan="7">تعذّر تحميل البيانات.</td></tr>';
+  }
+}
+
+
+document.getElementById('ops-refresh').addEventListener('click', loadAllData);
+document.getElementById('qual-refresh').addEventListener('click', loadAllData);
+
+/*---------------------- حذف صف / حذف الجدول (أدمن فقط) ----------------------*/
+async function deleteRow(sheetName, rowIndex) {
+  if (!isAdmin) return;
+  if (!confirm("تأكيد حذف هذا الصف؟")) return;
+  try {
+    await callApi({ type: "deleteRow", sheetName, rowIndex });
+    loadAllData();
+  } catch (err) {
+    alert("تعذّر حذف الصف.");
+    console.error(err);
+  }
+}
+
+async function deleteAll(sheetName) {
+  if (!isAdmin) return;
+  if (!confirm("سيتم حذف كل بيانات هذا الجدول نهائيًا. متأكد؟")) return;
+  try {
+    await callApi({ type: "deleteAll", sheetName });
+    loadAllData();
+  } catch (err) {
+    alert("تعذّر حذف الجدول.");
+    console.error(err);
+  }
+}
+
+document.getElementById('ops-delete-all').addEventListener('click', () => deleteAll(OPS_SHEET_NAME));
+document.getElementById('qual-delete-all').addEventListener('click', () => deleteAll(QUAL_SHEET_NAME));
+
+/*---------------------- تنزيل ملف إكسل حقيقي (.xlsx) — أدمن فقط ----------------------
+  نستخدم مكتبة SheetJS لتوليد ملف .xlsx حقيقي (وليس نص CSV)، فكل
+  قيمة تنحفظ بخليتها الخاصة دائمًا بغض النظر عن إعدادات الفاصل
+  (الفاصلة/الفاصلة المنقوطة) في نظام التشغيل أو برنامج إكسل.
+------------------------------------------------------------*/
+function downloadXlsx(filename, headers, rows) {
+  const data = [headers, ...rows.map(r => r.values)];
+  const worksheet = XLSX.utils.aoa_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "التقرير");
+  XLSX.writeFile(workbook, filename);
+}
+
+document.getElementById('ops-download').addEventListener('click', () => {
+  if (!isAdmin) return;
+  const headers = ["التاريخ","الإنتاج الخام","الفلاتر المغسلة","سلج المروق","خزان السلج","الكهرباء (kWh)","ساعات تشغيل المحطة","تصدير الكامل","تصدير خليص","ساعات مضخات الكامل","منسوب خزان 1","منسوب الخزان الرئيسي","الإنتاج الفعلي (م³)"];
+  downloadXlsx("تقرير_التشغيل.xlsx", headers, lastOpsRows);
+});
+
+document.getElementById('qual-download').addEventListener('click', () => {
+  if (!isAdmin) return;
+  const headers = ["التاريخ","الكلور (mg/L)","العكارة (NTU)","pH","TDS (mg/L)","التوصيلية (µS/cm)"];
+  downloadXlsx("تقرير_جودة_المياه.xlsx", headers, lastQualRows);
+});
+
+/*---------------------- تحميل أولي عند فتح الصفحة ----------------------*/
+loadAllData();
+</script>
+
+
+</body>
+</html>
